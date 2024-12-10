@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/users")
 public class ClientController {
 
     @Autowired
@@ -30,8 +30,8 @@ public class ClientController {
 //               .body(user);
 
 
-    @PutMapping("/")
-    public ResponseEntity<Client> updateClient(@RequestBody ClientUpdateDTO client)
+    @PutMapping("/{userId}")
+    public ResponseEntity<Client> updateClient(@PathVariable("userId") UUID userId,@RequestBody ClientUpdateDTO client)
     {
         Client user=clientService.updateClient(client);
         return ResponseEntity
@@ -40,8 +40,8 @@ public class ClientController {
     }
 
     @PreAuthorize("hasAuthority('SCOPE_READ')")
-    @GetMapping("/{clientId}")
-    public ResponseEntity<ClientDTO> getClient(@PathVariable("clientId") UUID clientId,Authentication authentication)
+    @GetMapping("/{userId}")
+    public ResponseEntity<ClientDTO> getClient(@PathVariable("userId") UUID clientId,Authentication authentication)
     {
         ClientDTO user=clientService.getClient(clientId);
         System.out.println("Authorities: " + authentication.getAuthorities());

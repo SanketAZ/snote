@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/noteSet")
+@RequestMapping("/users/{userId}/note-sets")
 public class NoteSetController {
     @Autowired
     private NoteSetService noteSetService;
 
 
-    @GetMapping("/m/{userId}/")
+    @GetMapping
     ResponseEntity<List<NoteSetDisplayDTO>> getNoteSetsDisplay(@PathVariable("userId") UUID userId,
                                                                @RequestParam("pageNo")int pageNo,
                                                                @RequestParam("pageSize")int pageSize,
@@ -34,7 +34,7 @@ public class NoteSetController {
                 .body(noteSetDisplayDTOS);
     }
 
-    @PostMapping("/{userId}")
+    @PostMapping
     ResponseEntity<NoteSetDisplayDTO>createNoteSet(@PathVariable("userId") UUID userId, @RequestBody NoteSetDisplayDTO noteSetDisplayDTO){
 
         NoteSetDisplayDTO savedNoteSet=noteSetService.createNoteSet(userId,noteSetDisplayDTO);
@@ -42,14 +42,14 @@ public class NoteSetController {
                 .body(savedNoteSet);
     }
 
-    @DeleteMapping("/{userId}/{notSetId}")
+    @DeleteMapping("/{notSetId}")
     ResponseEntity<String>deleteNoteSet(@PathVariable("userId") UUID userId,@PathVariable("notSetId") UUID notSetId) {
         noteSetService.deleteNoteSet(userId,notSetId);
         return ResponseEntity.status(HttpStatus.OK)
                 .body("NoteSet deleted!!!");
     }
 
-    @PutMapping("/{userId}/{notSetId}")
+    @PutMapping("/{notSetId}")
     ResponseEntity<NoteSetDisplayDTO>updateNoteSet(@PathVariable("userId") UUID userId,
                                                    @PathVariable("notSetId") UUID notSetId,
                                                    @RequestBody NoteSetDisplayDTO noteSetDisplayDTO){

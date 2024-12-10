@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/images")
+@RequestMapping("/notes/{noteId}/images")
 public class ImageController {
 
     @Autowired
     private ImageService imageService;
 
-    @PostMapping("/{noteId}")
+    @PostMapping
     private ResponseEntity<?>saveImage(@PathVariable("noteId")UUID noteId, @RequestParam("image")MultipartFile image)
     {
         if (image.isEmpty()) {
@@ -30,7 +30,7 @@ public class ImageController {
                 .body(imageDTO);
     }
 
-    @PostMapping("/{noteId}/multi")
+    @PostMapping("/bulk")
     private ResponseEntity<?>saveImages(@PathVariable("noteId")UUID noteId, @RequestParam("images")List<MultipartFile>images)
     {
         if (images.isEmpty()) {
@@ -49,7 +49,7 @@ public class ImageController {
                 .body(imageDTO);
     }
 
-    @GetMapping("/all/{noteId}/")
+    @GetMapping
     private ResponseEntity<List<ImageDTO>>getImagesUsingNoteId(@PathVariable("noteId")UUID noteId)
     {
         List<ImageDTO> images=imageService.getImagesForNote(noteId);
@@ -57,7 +57,7 @@ public class ImageController {
                 .body(images);
     }
 
-    @GetMapping("/{noteId}/")
+    @GetMapping("/paged")
     private ResponseEntity<List<ImageDTO>>getPageImageUsingNoteId(@PathVariable("noteId")UUID noteId,
                                                                   @RequestParam("pageNo")int pageNo,
                                                                   @RequestParam("pageSize")int pageSize,
@@ -75,7 +75,7 @@ public class ImageController {
                 .body(images);
     }
 
-    @DeleteMapping("/{noteId}/{imageId}")
+    @DeleteMapping("/{imageId}")
     private ResponseEntity<?>deleteImage(@PathVariable("noteId")UUID noteId,@PathVariable("imageId")UUID imageId)
     {
         imageService.deleteImage(imageId,noteId);
@@ -83,7 +83,7 @@ public class ImageController {
                 .body("deleted successfully.");
     }
 
-    @DeleteMapping("/multi/{noteId}/")
+    @DeleteMapping("/bulk")
     private ResponseEntity<?>deleteImage(@PathVariable("noteId")UUID noteId,@RequestParam("imageIds")List<UUID> imageIds)
     {
         imageService.deleteImages(imageIds,noteId);

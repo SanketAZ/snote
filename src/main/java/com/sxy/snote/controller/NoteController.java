@@ -12,41 +12,41 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/note")
+@RequestMapping("/users/{userId}/notes")
 public class NoteController {
 
     @Autowired
     private NoteService noteService;
 
-    @PostMapping("/{clientId}")
-    public ResponseEntity<NoteDTO> createNote(@PathVariable("clientId") UUID clientId, @RequestBody NoteDTO noteDTO) {
+    @PostMapping
+    public ResponseEntity<NoteDTO> createNote(@PathVariable("userId") UUID clientId, @RequestBody NoteDTO noteDTO) {
         NoteDTO noteDTO1=noteService.createNote(clientId,noteDTO);
         return ResponseEntity.status(HttpStatus.OK)
                         .body(noteDTO1);
     }
 
-    @PostMapping("/{clientId}/ns")
-    public ResponseEntity<NoteDTO> createNoteWithNoteSet(@PathVariable("clientId") UUID clientId,@RequestParam("noteSetId")UUID noteSetId, @RequestBody NoteDTO noteDTO) {
+    @PostMapping("/note-set/{noteSetId}")
+    public ResponseEntity<NoteDTO> createNoteWithNoteSet(@PathVariable("userId") UUID clientId,@RequestParam("noteSetId")UUID noteSetId, @RequestBody NoteDTO noteDTO) {
         NoteDTO noteDTO1=noteService.createNote(clientId,noteSetId,noteDTO);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(noteDTO1);
     }
 
-    @PutMapping("/{clientId}/{noteId}")
-    public ResponseEntity<NoteDTO> updateNote(@PathVariable("clientId") UUID clientId,@PathVariable("noteId") UUID noteId, @RequestBody NoteDTO noteDTO) {
+    @PutMapping("/{noteId}")
+    public ResponseEntity<NoteDTO> updateNote(@PathVariable("userId") UUID clientId,@PathVariable("noteId") UUID noteId, @RequestBody NoteDTO noteDTO) {
         NoteDTO noteDTO1=noteService.updateNote(clientId,noteId,noteDTO);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(noteDTO1);
     }
 
     @GetMapping("/{noteId}")
-    public ResponseEntity<NoteDTO> getSpecificNote(@PathVariable("noteId") UUID noteId){
+    public ResponseEntity<NoteDTO> getSpecificNote(@PathVariable("userId") UUID clientId,@PathVariable("noteId") UUID noteId){
         NoteDTO noteDTO1=noteService.getNoteById(noteId);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(noteDTO1);
     }
 
-    @GetMapping("/{userId}/{noteSetId}")
+    @GetMapping("/note-sets/{noteSetId}")
     public ResponseEntity<List<NoteDTO>> getNotesForNoteSet(@PathVariable("userId") UUID userId,
                                                             @PathVariable("noteSetId") UUID noteSetId,
                                                             @RequestParam("pageNo")int pageNo,
@@ -63,7 +63,7 @@ public class NoteController {
                 .body(noteDTOList);
     }
 
-    @GetMapping("/m/{userId}")
+    @GetMapping
     public ResponseEntity<List<NoteDTO>> getNotesForUser(@PathVariable("userId") UUID userId,
                                                             @RequestParam("pageNo")int pageNo,
                                                             @RequestParam("pageSize")int pageSize,
@@ -80,21 +80,21 @@ public class NoteController {
     }
 
     @DeleteMapping("/{noteId}")
-    public ResponseEntity<String> deleteNote(@PathVariable("noteId") UUID noteId)
+    public ResponseEntity<String> deleteNote(@PathVariable("userId") UUID userId,@PathVariable("noteId") UUID noteId)
     {
       noteService.deleteNoteById(noteId);
         return ResponseEntity.status(HttpStatus.OK)
                 .body("Note deleted!!!");
     }
 
-    @DeleteMapping("/{userId}")
+    @DeleteMapping
     public ResponseEntity<String> deleteNotes(@PathVariable("userId") UUID userId,@RequestParam("noteIds")List<UUID>noteIds) {
         noteService.deleteNoteByIds(userId,noteIds);
         return ResponseEntity.status(HttpStatus.OK)
                 .body("Notes are deleted!!!");
     }
 
-    @PatchMapping("/{noteSetId}")
+    @PatchMapping("/note-sets/{noteSetId}")
     public ResponseEntity<Integer>updateNotesForMultipleNotes(@PathVariable("noteSetId")UUID noteSetId,@RequestParam("noteIds")List<UUID>noteIds,@RequestParam("unload")Boolean unload) {
         Integer updatedNotes=noteService.assignNoteSetToNotes(noteIds,noteSetId,unload);
         return ResponseEntity.status(HttpStatus.OK)

@@ -16,6 +16,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/auth")
 public class AuthController {
 
     @Autowired
@@ -24,19 +25,19 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @PostMapping("/sign-in")
+    @PostMapping("/login")
     public ClientTokenDTO loginUser(@RequestBody Client client,HttpServletResponse response){
         return authService.verify(client,response);
 
     }
 
     @PreAuthorize("hasAuthority('SCOPE_REFRESH-TOKEN')")
-    @GetMapping("/refresh-token")
+    @GetMapping("/token/refresh")
     public ResponseEntity<?> getAccessToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader){
         return ResponseEntity.ok(authService.getAccessTokenUsingRefreshToken(authorizationHeader));
     }
 
-    @PostMapping("/sign-up")
+    @PostMapping("/register")
     public ClientTokenDTO registerUser(@Valid @RequestBody Client client,
                                           BindingResult bindingResult,
                                        HttpServletResponse httpServletResponse){
