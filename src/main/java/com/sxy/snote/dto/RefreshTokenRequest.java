@@ -5,14 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ClientUpdateDTO {
-    private UUID id;
-    private String email;
-    private String keycloakId;
+public class RefreshTokenRequest {
+    private String refresh_token;
 }

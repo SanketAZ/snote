@@ -13,4 +13,5 @@ public interface ClientService {
     Client createClient(Client client, BindingResult bindingResult);
     Client updateClient(ClientUpdateDTO client);
     ClientDTO getClient(UUID clientId);
+    void deleteClient(UUID clientId);
 }

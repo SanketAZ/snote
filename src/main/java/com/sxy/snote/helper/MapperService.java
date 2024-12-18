@@ -17,8 +17,19 @@ public class MapperService {
                 .JwtToken(token)
                 .expireTime("15")
                 .build();
-
         return clientTokenDTO;
+    }
+
+    public static ClientToken getClientToken(Client client,TokenResponseDTO tokenResponseDTO)
+    {
+        ClientToken clientToken=
+                ClientToken.builder()
+                        .id(client.getId())
+                        .email(client.getEmail())
+                        .username(client.getUsername())
+                        .tokenResponseDTO(tokenResponseDTO)
+                        .build();
+        return clientToken;
     }
 
     public static ClientDTO getClientDTO(Client client)
@@ -28,6 +39,7 @@ public class MapperService {
                         .id(client.getId())
                         .email(client.getEmail())
                         .username(client.getUsername())
+                        .roles(client.getRoles())
                         .build();;
 
         return clientDTO;
@@ -101,14 +113,4 @@ public class MapperService {
                 .build();
     }
 
-    public static Client convertClientUpdateDTO_Client(ClientUpdateDTO clientUpdateDTO)
-    {
-        return Client.builder()
-                .id(clientUpdateDTO.getClientDTO().getId())
-                .password(clientUpdateDTO.getPassword())
-                .email(clientUpdateDTO.getClientDTO().getEmail())
-                .roles(clientUpdateDTO.getClientDTO().getRoles())
-                .username(clientUpdateDTO.getClientDTO().getUsername())
-                .build();
-    }
 }

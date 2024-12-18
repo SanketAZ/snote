@@ -3,8 +3,12 @@ package com.sxy.snote.controller;
 
 import com.sxy.snote.dto.ClientDTO;
 import com.sxy.snote.dto.ClientUpdateDTO;
+import com.sxy.snote.dto.TokenResponseDTO;
+import com.sxy.snote.helper.MapperService;
 import com.sxy.snote.model.Client;
 import com.sxy.snote.service.ClientService;
+import com.sxy.snote.service.impl.KeycloakAuthService;
+import com.sxy.snote.service.impl.KeycloakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,40 +25,34 @@ public class ClientController {
     @Autowired
     private ClientService clientService;
 
-//    @PostMapping("/register")
-//    public ResponseEntity<ClientTokenDTO> createClient(@RequestBody Client client)
-//    {
-//        ClientTokenDTO user=clientService.createClient(client);
-//       return ResponseEntity
-//               .status(HttpStatus.CREATED)
-//               .body(user);
-
+    @Autowired
+    private KeycloakService keycloakService;
+    @Autowired
+    private KeycloakAuthService keycloakAuthService;
 
     @PutMapping("/{userId}")
-    public ResponseEntity<Client> updateClient(@PathVariable("userId") UUID userId,@RequestBody ClientUpdateDTO client)
-    {
+    public ResponseEntity<ClientDTO> updateClient(@PathVariable("userId") UUID userId,@RequestBody ClientUpdateDTO client) {
         Client user=clientService.updateClient(client);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(user);
+                .body(MapperService.getClientDTO(user));
     }
 
-    @PreAuthorize("hasAuthority('SCOPE_READ')")
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteClient(@PathVariable("userId") UUID userId) {
+        clientService.deleteClient(userId);
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER_READ')")
     @GetMapping("/{userId}")
     public ResponseEntity<ClientDTO> getClient(@PathVariable("userId") UUID clientId,Authentication authentication)
     {
         ClientDTO user=clientService.getClient(clientId);
         System.out.println("Authorities: " + authentication.getAuthorities());
-
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(user);
     }
-
-//    @GetMapping("/protected")
-//    public ResponseEntity<String> getProtectedData(Authentication authentication) {
-//        System.out.println("Authorities: " + authentication.getAuthorities());
-//        return ResponseEntity.ok("Protected data");
-//    }
-
 }
