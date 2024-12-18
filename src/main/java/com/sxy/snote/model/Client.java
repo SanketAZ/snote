@@ -27,6 +27,7 @@ public class Client {
     @Column(updatable = false, nullable = false, columnDefinition = "UUID")
     private UUID id;
 
+    private String keycloakId;
     @Column(unique = true, nullable = false)
     private String username;
     @Column(unique = true, nullable = false)
