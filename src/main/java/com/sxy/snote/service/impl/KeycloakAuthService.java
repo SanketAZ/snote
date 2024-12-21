@@ -1,9 +1,6 @@
 package com.sxy.snote.service.impl;
 
-import com.sxy.snote.dto.ClientToken;
-import com.sxy.snote.dto.ClientTokenDTO;
-import com.sxy.snote.dto.RefreshTokenRequest;
-import com.sxy.snote.dto.TokenResponseDTO;
+import com.sxy.snote.dto.*;
 import com.sxy.snote.exception.KeyclockException;
 import com.sxy.snote.helper.MapperService;
 import com.sxy.snote.model.Client;
@@ -27,6 +24,36 @@ public class KeycloakAuthService {
     public ClientToken getClientToken(Client client) {
         TokenResponseDTO tokenResponseDTO=generateTokenOnSignUp(client);
         return MapperService.getClientToken(client,tokenResponseDTO);
+    }
+
+    public TokenResponseDTO generateAccessToken(TokenRequest tokenRequest) {
+        // Prepare body
+        Map<String, String> body = Map.of(
+                "grant_type", "authorization_code",
+                "client_id", "practice_login",
+                "client_secret", "aNrvYaEW5cMFm8FaLZn4KSZWfF3MfzzH",
+                "code", tokenRequest.getCode(),
+                "redirect_uri", tokenRequest.getRedirectUri()
+        );
+
+        return webClient.post()
+                .uri(keycloakTokenUrl)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .bodyValue(toUrlEncodedString(body)) // Encode as URL-encoded string
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError,
+                        clientResponse -> clientResponse.bodyToMono(String.class)
+                                .map(errorBody -> {
+                                    // Build a JAX-RS Response
+                                    Response errorResponse = Response
+                                            .status(clientResponse.statusCode().value()) // Use the HTTP status from the response
+                                            .entity(errorBody) // Include error body
+                                            .build();
+                                    throw new KeyclockException("Error from Keycloak: ", errorResponse);
+                                })
+                )
+                .bodyToMono(TokenResponseDTO.class) // Map response to TokenDTO
+                .block(); // Blocking for demonstration, use reactive programming in production
     }
 
     public TokenResponseDTO generateTokenOnSignUp(Client client) {

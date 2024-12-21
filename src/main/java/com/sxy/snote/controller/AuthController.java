@@ -2,6 +2,8 @@ package com.sxy.snote.controller;
 
 import com.sxy.snote.dto.ClientToken;
 import com.sxy.snote.dto.RefreshTokenRequest;
+import com.sxy.snote.dto.TokenRequest;
+import com.sxy.snote.dto.TokenResponseDTO;
 import com.sxy.snote.model.Client;
 import com.sxy.snote.service.ClientService;
 import com.sxy.snote.service.impl.KeycloakAuthService;
@@ -39,5 +41,10 @@ public class AuthController {
         System.out.println("sign-up");
         Client createdClient=clientService.createClient(client,bindingResult);
         return keycloakAuthService.getClientToken(createdClient);
+    }
+
+    @PostMapping("/exchange-token")
+    public TokenResponseDTO exchangeToken(@RequestBody TokenRequest tokenRequest){
+        return keycloakAuthService.generateAccessToken(tokenRequest);
     }
 }
