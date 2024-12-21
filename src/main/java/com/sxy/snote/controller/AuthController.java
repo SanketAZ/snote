@@ -24,7 +24,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ClientToken loginUser(@RequestBody Client client,HttpServletResponse response){
-        return keycloakAuthService.getClientToken(client);
+        return keycloakAuthService.getClientTokenLogin(client);
     }
 
     @GetMapping("/token/refresh")
