@@ -7,7 +7,9 @@ import com.sxy.snote.dto.TokenResponseDTO;
 import com.sxy.snote.exception.KeyclockException;
 import com.sxy.snote.helper.MapperService;
 import com.sxy.snote.model.Client;
+import com.sxy.snote.repository.ClientRepo;
 import jakarta.ws.rs.core.Response;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
@@ -19,6 +21,8 @@ import java.util.Map;
 
 @Service
 public class KeycloakAuthService {
+    @Autowired
+    private ClientRepo clientRepo;
 
     private final WebClient webClient = WebClient.create();
 
@@ -27,6 +31,12 @@ public class KeycloakAuthService {
     public ClientToken getClientToken(Client client) {
         TokenResponseDTO tokenResponseDTO=generateTokenOnSignUp(client);
         return MapperService.getClientToken(client,tokenResponseDTO);
+    }
+
+    public ClientToken getClientTokenLogin(Client client) {
+        TokenResponseDTO tokenResponseDTO=generateTokenOnSignUp(client);
+        Client presentUser=clientRepo.findByUsername(client.getUsername()).get();
+        return MapperService.getClientToken(presentUser,tokenResponseDTO);
     }
 
     public TokenResponseDTO generateTokenOnSignUp(Client client) {
