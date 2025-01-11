@@ -25,9 +25,10 @@ public class ClientController {
     @Autowired
     private ClientService clientService;
 
-    @Autowired
+    @Autowired(required = false)
     private KeycloakService keycloakService;
-    @Autowired
+
+    @Autowired(required = false)
     private KeycloakAuthService keycloakAuthService;
 
     @PutMapping("/{userId}")

@@ -20,7 +20,7 @@ public class ClientServiceImpl implements ClientService {
     @Autowired
     private ClientRepo clientRepo;
 
-    @Autowired
+    @Autowired(required = false)
     private KeycloakService keycloakService;
 
 

@@ -19,7 +19,7 @@ public class AuthController {
     @Autowired
     private ClientService clientService;
 
-    @Autowired
+    @Autowired(required = false)
     private KeycloakAuthService keycloakAuthService;
 
     @PostMapping("/login")

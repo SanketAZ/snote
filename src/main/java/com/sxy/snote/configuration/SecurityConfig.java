@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
@@ -29,14 +30,17 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
     @Autowired
     private JwtAuthConverter jwtAuthConverter;
-    @Autowired
+
+    @Autowired(required = false)
     private LogoutHandlerService logoutHandlerService;
+
     @Autowired
     @Lazy
     private AuthenticationManager authenticationManager;
 
     @Bean
     @Order(3)
+    @Profile("prod")
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher(new AntPathRequestMatcher("/auth/login"))
@@ -47,9 +51,9 @@ public class SecurityConfig {
                 .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();}
 
-
     @Bean
     @Order(2)
+    @Profile("prod")
     public SecurityFilterChain securityFilterChainMain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher(new AntPathRequestMatcher("/users/**"))
@@ -64,19 +68,21 @@ public class SecurityConfig {
         return http.build();
     }
 
-//    @Bean
-//    @Order(1)
-//    public SecurityFilterChain NoSecurity(HttpSecurity http) throws Exception {
-//        http.authorizeHttpRequests(auth->auth.anyRequest().permitAll())
-//                .csrf(csrf->csrf.disable())
-//                .headers(headers -> headers.disable())
-//                .httpBasic(httpBasic -> httpBasic.disable())
-//                .formLogin(form -> form.disable());
-//        return http.build();
-//    }
+    @Bean
+    @Order(1)
+    @Profile("dev")
+    public SecurityFilterChain NoSecurity(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(auth->auth.anyRequest().permitAll())
+                .csrf(csrf->csrf.disable())
+                .headers(headers -> headers.disable())
+                .httpBasic(httpBasic -> httpBasic.disable())
+                .formLogin(form -> form.disable());
+        return http.build();
+    }
 
     @Order(1)
     @Bean
+    @Profile("prod")
     public SecurityFilterChain logoutSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .securityMatcher(new AntPathRequestMatcher("/auth/logout"))
@@ -99,6 +105,7 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Profile("prod")
     public AuthenticationManager authenticationManager(JwtDecoder jwtDecoder) {
         JwtAuthenticationProvider jwtAuthenticationProvider = new JwtAuthenticationProvider(jwtDecoder);
         jwtAuthenticationProvider.setJwtAuthenticationConverter(jwtAuthConverter);

@@ -26,7 +26,7 @@ public class NoteController {
     }
 
     @PostMapping("/note-set/{noteSetId}")
-    public ResponseEntity<NoteDTO> createNoteWithNoteSet(@PathVariable("userId") UUID clientId,@RequestParam("noteSetId")UUID noteSetId, @RequestBody NoteDTO noteDTO) {
+    public ResponseEntity<NoteDTO> createNoteWithNoteSet(@PathVariable("userId") UUID clientId,@PathVariable("noteSetId")UUID noteSetId, @RequestBody NoteDTO noteDTO) {
         NoteDTO noteDTO1=noteService.createNote(clientId,noteSetId,noteDTO);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(noteDTO1);

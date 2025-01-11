@@ -8,6 +8,7 @@ import com.sxy.snote.exception.KeyclockException;
 import com.sxy.snote.helper.MapperService;
 import com.sxy.snote.model.Client;
 import jakarta.ws.rs.core.Response;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
@@ -18,6 +19,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.Map;
 
 @Service
+@Profile("prod")
 public class KeycloakAuthService {
 
     private final WebClient webClient = WebClient.create();

@@ -1,7 +1,11 @@
 package com.sxy.snote.service.impl;
 
 import com.sxy.snote.dto.NoteDTO;
+import com.sxy.snote.dto.NoteSetDisplayDTO;
 import com.sxy.snote.dto.PageSortDTO;
+import com.sxy.snote.event.NoteChangeEvent;
+import com.sxy.snote.event.NotesDeleteEvent;
+import com.sxy.snote.event.NotesUpdateEvent;
 import com.sxy.snote.exception.NoteSetUnauthorizedException;
 import com.sxy.snote.exception.ResourceNotFoundException;
 import com.sxy.snote.exception.UserNotFoundException;
@@ -14,6 +18,7 @@ import com.sxy.snote.repository.NoteRepo;
 import com.sxy.snote.repository.NoteSetRepo;
 import com.sxy.snote.service.NoteService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +30,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class NoteServiceImpl implements NoteService {
@@ -38,6 +44,10 @@ public class NoteServiceImpl implements NoteService {
     @Autowired
     private NoteSetRepo noteSetRepo;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
+    //saving the note
     @Override
     public NoteDTO createNote(UUID userId, NoteDTO noteDTO) {
         System.out.println("Note creation");
@@ -46,7 +56,12 @@ public class NoteServiceImpl implements NoteService {
         note.setUser(user);
         note=noteRepo.save(note);
         System.out.println("Note creation");
-        return MapperService.getNoteDTO(note);
+        NoteDTO responseNoteDTO=MapperService.getNoteDTO(note);
+
+        //Publish the event
+        eventPublisher.publishEvent(new NoteChangeEvent(this,responseNoteDTO,"CREATE"));
+
+        return responseNoteDTO;
     }
 
     //Method to create note in noteSet
@@ -63,7 +78,12 @@ public class NoteServiceImpl implements NoteService {
         note.setUser(user);
         note.setNoteSet(noteSet);
         Note savedNote=noteRepo.save(note);
-        return MapperService.getNoteDTO(savedNote);
+        NoteDTO responseNoteDTO=MapperService.getNoteDTO(savedNote);
+
+        //Publish the event
+        eventPublisher.publishEvent(new NoteChangeEvent(this,responseNoteDTO,"CREATE"));
+
+        return responseNoteDTO;
     }
 
     @Override
@@ -79,7 +99,11 @@ public class NoteServiceImpl implements NoteService {
 
         updateNoteFromDTO(opNote,noteDTO);
         opNote=noteRepo.save(opNote);
-        return MapperService.getNoteDTO(opNote);
+
+        NoteDTO updatedNoteDTO=MapperService.getNoteDTO(opNote);
+
+        eventPublisher.publishEvent(new NoteChangeEvent(this,updatedNoteDTO,"UPDATE"));
+        return updatedNoteDTO;
     }
 
     private void updateNoteFromDTO(Note note,NoteDTO noteDTO){
@@ -106,6 +130,10 @@ public class NoteServiceImpl implements NoteService {
             throw new ResourceNotFoundException("Note does not exists");
         }
         noteRepo.delete(opNote.get());
+
+        NoteDTO deleteNoteDTO=new NoteDTO();
+        deleteNoteDTO.setId(noteId);
+        eventPublisher.publishEvent(new NoteChangeEvent(this,deleteNoteDTO,"DELETE"));
     }
 
     //Get Notes for give noteSet with pagination and sorting
@@ -140,6 +168,7 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
+    @Transactional
     public void deleteNoteByIds(UUID userId,List<UUID> noteIds) {
         // Validate input
         if (CollectionUtils.isEmpty(noteIds)) {
@@ -150,8 +179,15 @@ public class NoteServiceImpl implements NoteService {
         }
         // Fetch notes to delete
         final List<Note> notesToDelete = noteRepo.findByUserIdAndIdIn(userId, noteIds);
+
+        List<NoteDTO>noteDTOList=notesToDelete.stream()
+                .map(MapperService::getNoteDTO)
+                .toList();
+
         // Perform batch deletion
         noteRepo.deleteAllInBatch(notesToDelete);
+
+        eventPublisher.publishEvent(new NotesDeleteEvent(this,noteDTOList));
     }
 
     @Override
@@ -163,6 +199,17 @@ public class NoteServiceImpl implements NoteService {
         if(unload)
             noteSetId=null;
         int updatedRows=noteRepo.updateNoteSetIdForMultipleNotes(userId,noteSetId,noteIds);
+
+
+        //Default notSetId if note is not in any notSet
+        String eventNoteSetId="00000000-0000-0000-0000-ffffffffffff";
+        if(!unload)
+            eventNoteSetId=noteSetId.toString();
+
+        NotesUpdateEvent notesUpdateEvent=new NotesUpdateEvent(this,noteIds.stream()
+                                                    .map(UUID::toString)
+                                                    .collect(Collectors.toList()),eventNoteSetId);
+        eventPublisher.publishEvent(notesUpdateEvent);
         return updatedRows;
     }
 
